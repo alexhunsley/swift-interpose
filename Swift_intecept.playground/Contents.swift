@@ -130,7 +130,37 @@ public struct ClosureDebug {
 //    }
 }
 
+
+public func __iPrint<P1>(tag: String? = nil) -> (P1) -> Void {
+    { (p1: P1) in
+        print("P1 = \(p1)")
+    }
+}
+
+//public func __iWrap<P1>(tag: String? = nil, f: @escaping (P1) -> Void) -> (P1) -> Void {
+public func __iPrint<P1>(tag: String? = nil, f: @escaping (P1) -> Void) -> (P1) -> Void {
+    { (p1: P1) in
+        f(p1)
+        print("P1 = \(p1)")
+    }
+}
+
+//public func __iWrap<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 {
+public func __iPrint<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 {
+    { (p1: P1) in
+        let ret = f(p1)
+        print("P1 = \(p1), Returns = \(ret)")
+        return ret
+    }
+}
+
+//f: @escaping (P1, P2) -> R1
+
 func someThing(_ f: (Int) -> Void) {
+    f(7)
+}
+
+func someThing(_ f: (Int) -> Int) -> Int {
     f(7)
 }
 
@@ -144,21 +174,45 @@ func someThing3(_ f: (Int, String) -> (CGFloat, CGFloat)) {
     print(ret)
 }
 
-someThing(ClosureDebug()())
+//var iPrint = <P1, R1>{  }
 
-someThing2(ClosureDebug()(f:
-                            { (a: Int, b: String) -> CGFloat in
-                                return CGFloat(9.0)
-                            }
-                         )
-)
+//prefix operator ++
+//
+//prefix func ++ <P1, R1>(f: @escaping (P1) -> R1) -> (P1) -> R1 {
+//    { p1 in
+//        f(p1)
+//    }
+//}
 
-someThing3(ClosureDebug()(f:
-                            { (a: Int, b: String) -> (CGFloat, CGFloat) in
-                                return (CGFloat(9.0), CGFloat(2.0))
-                            }
-                         )
-)
+//let ff =
+//let x: Int = someThing(__iPrint)
+
+someThing(__iPrint { x in
+    12
+})
+
+//someThing(__iPrint)
+someThing(__iPrint())
+someThing(__iPrint() { p in
+    print("In my actual func! got p = \(p)")
+})
+
+//someThing(ClosureDebug()())
+//
+//
+//someThing2(ClosureDebug()(f:
+//                            { (a: Int, b: String) -> CGFloat in
+//                                return CGFloat(9.0)
+//                            }
+//                         )
+//)
+//
+//someThing3(ClosureDebug()(f:
+//                            { (a: Int, b: String) -> (CGFloat, CGFloat) in
+//                                return (CGFloat(9.0), CGFloat(2.0))
+//                            }
+//                         )
+//)
 
 //public protocol Emptoid: Any {
 //    static var emptoid: Self { get }
