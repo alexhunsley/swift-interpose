@@ -196,7 +196,7 @@ public func __iAssertCalled<P1, R1>(tag: String? = "none", timeout: Double = 1.0
 
 print("DONE3")
 
-public func __iAssertCalledAsync<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 where R1: DefaultValueProviding {
+public func __iCalledAsync<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 where R1: DefaultValueProviding {
     { (p1: P1) in
         assertionFailure("An __iAssertNotCalled was called")
         return R1.defaultValue
@@ -205,11 +205,6 @@ public func __iAssertCalledAsync<P1, R1>(tag: String? = nil, f: @escaping (P1) -
 
 //f: @escaping (P1, P2) -> R1
 
-func someThingAsync(_ f: @escaping (Int) -> Void) async {
-    try? await Task.sleep(nanoseconds: 1_000_000_000)
-    f(7)
-}
-
 let innerClosureAsVar = { (x: Int) in
     return
 }
@@ -217,6 +212,8 @@ let innerClosureAsVar = { (x: Int) in
 // structured concurrency must have a Task (or other structured context)
 Task {
     print("Pre-sleep")
+    // so we don't need async variant? or throws?
+    // need to think about the throws bit
     await someThingAsync(__iPrint { x in
         return
     })
@@ -230,6 +227,10 @@ Task {
     someThing(innerClosureAsVar)
     print("Post-sync variant")
 
+    try someThingThrows(__iPrint { x in
+        return
+    })
+
     PlaygroundPage.current.needsIndefiniteExecution = false
 }
 
@@ -238,6 +239,15 @@ func someThing(_ f: (Int) -> Void) {
     f(7)
 }
 
+func someThingAsync(_ f: @escaping (Int) -> Void) async {
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+    f(7)
+}
+
+func someThingThrows(_ f: @escaping (Int) throws -> Void) throws {
+    try f(7)
+    throw "Goober error"
+}
 
 func someThingDoesNotCall(_ f: (Int) -> Int) -> Int {
     // don't call f
@@ -301,14 +311,14 @@ let x2: Int = someThing(__iAssertCalled() { p in
 
 // this crashes out, as expected
 
-//let x3: Int = someThingDoesNotCall(__iAssertCalled() { p in
+//let x3: Int = someThingDoesNotCall(__iCalled() { p in
 //    print("In my actual func 3! got p = \(p)")
 //    return 5
 //})
 
 // this crashes out, as expected
 
-//let x3: Int = someThingDoesNotCall(__iAssertCalled(timeout: 0.5) { p in
+//let x3: Int = someThingDoesNotCall(__iCalled(timeout: 0.5) { p in
 //    print("In my actual func 3! got p = \(p)")
 //    return 5
 //})
