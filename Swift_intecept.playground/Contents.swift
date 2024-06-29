@@ -1,5 +1,5 @@
 import UIKit
-
+import PlaygroundSupport
 
 /// Easy logging of closure calling with params.
 /// Particularly useful for SwiftU previews.
@@ -26,6 +26,13 @@ import UIKit
 /// Example output: (chec and redo these, prolly wrong!)
 ///     Closure debug: a = getStartedSelected [2024-06-28 12:29:33 +0000 Plan View.swift preview previews]
 ///     Closure debug: a = future YouAreOnTrackForSelected [2024-06-28 12:29:38 +0000 PlanView.swift preview previews!
+
+// no possible! Would have to list the P1s on LHS so pointless!
+//typealias P2R1 = (P1, P2) -> R1
+
+// idea: intercept for making sure return value from a func never changes.
+// Like memoize, but doing slightly less.
+PlaygroundPage.current.needsIndefiniteExecution = true
 
 public struct ClosureDebug {
     private let prefixString: String
@@ -154,10 +161,87 @@ public func __iPrint<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1
     }
 }
 
+public protocol DefaultValueProviding {
+    static var defaultValue: Self { get }
+}
+
+extension Int: DefaultValueProviding {
+    public static var defaultValue = 0
+}
+
+public func __iAssertNotCalled<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 where R1: DefaultValueProviding {
+    { (p1: P1) in
+        assertionFailure("An __iAssertNotCalled was called")
+        return R1.defaultValue
+    }
+}
+
+public func __iAssertCalled<P1, R1>(tag: String? = "none", timeout: Double = 1.0, callFunc: String = #function, f: @escaping (P1) -> R1) -> (P1) -> R1 where R1: DefaultValueProviding {
+    // use timer to wait for delay, then signal we weren't called.
+    // if our block is called, we cancel the timer, and all is well.
+
+    var timer: Timer?
+
+    // Create a timer that fires after 1 second
+    timer = Timer.scheduledTimer(withTimeInterval: timeout, repeats: false) { _ in
+        assertionFailure("Intercept: The closure for [callFunc: \(callFunc), tag: \(String(describing: tag))] was not called after \(timeout) seconds had elapsed")
+    }
+
+    return { (p1: P1) in
+        timer?.invalidate()
+        timer = nil
+        return R1.defaultValue
+    }
+}
+
+print("DONE3")
+
+public func __iAssertCalledAsync<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 where R1: DefaultValueProviding {
+    { (p1: P1) in
+        assertionFailure("An __iAssertNotCalled was called")
+        return R1.defaultValue
+    }
+}
+
 //f: @escaping (P1, P2) -> R1
+
+func someThingAsync(_ f: @escaping (Int) -> Void) async {
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+    f(7)
+}
+
+let innerClosureAsVar = { (x: Int) in
+    return
+}
+
+// structured concurrency must have a Task (or other structured context)
+Task {
+    print("Pre-sleep")
+    await someThingAsync(__iPrint { x in
+        return
+    })
+    print("Post-sleep")
+    someThing(__iPrint { x in
+        return
+    })
+    // works too, of course
+    someThing(__iPrint(f: innerClosureAsVar))
+    // without my iPrint
+    someThing(innerClosureAsVar)
+    print("Post-sync variant")
+
+    PlaygroundPage.current.needsIndefiniteExecution = false
+}
+
 
 func someThing(_ f: (Int) -> Void) {
     f(7)
+}
+
+
+func someThingDoesNotCall(_ f: (Int) -> Int) -> Int {
+    // don't call f
+    Int.defaultValue
 }
 
 func someThing(_ f: (Int) -> Int) -> Int {
@@ -173,6 +257,7 @@ func someThing3(_ f: (Int, String) -> (CGFloat, CGFloat)) {
     let ret = f(8, "bye")
     print(ret)
 }
+
 
 //var iPrint = <P1, R1>{  }
 
@@ -191,11 +276,53 @@ someThing(__iPrint { x in
     12
 })
 
+
+
 //someThing(__iPrint)
 someThing(__iPrint())
+
 someThing(__iPrint() { p in
     print("In my actual func! got p = \(p)")
 })
+
+// these work:
+
+// if detect unit test context? do the unit test type assertions? is this possible?
+
+let x: Int = someThingDoesNotCall(__iAssertNotCalled() { p in
+    print("In my actual func 2! got p = \(p)")
+    return 5
+})
+
+let x2: Int = someThing(__iAssertCalled() { p in
+    print("In my actual func 2! got p = \(p)")
+    return 5
+})
+
+// this crashes out, as expected
+
+//let x3: Int = someThingDoesNotCall(__iAssertCalled() { p in
+//    print("In my actual func 3! got p = \(p)")
+//    return 5
+//})
+
+// this crashes out, as expected
+
+//let x3: Int = someThingDoesNotCall(__iAssertCalled(timeout: 0.5) { p in
+//    print("In my actual func 3! got p = \(p)")
+//    return 5
+//})
+
+// this crashes out, as expected
+//let x4: Int = someThing(__iAssertNotCalled() { p in
+//    print("In my actual func 4! got p = \(p)")
+//    return 5
+//})
+
+
+// don't actually need this, the thread hangs around and does its thing
+//sleep(2)
+print("Exiting PG")
 
 //someThing(ClosureDebug()())
 //
@@ -221,3 +348,69 @@ someThing(__iPrint() { p in
 //extension CGFloat: Emptoid {
 //    public static var emptoid = CGFloat(0.0)
 //}
+
+//Can i get throw ?. optError to be a thing?
+
+// do I need to wrap throw somehow to access as func for my .? thing?
+//print(throw)
+
+infix operator .?
+
+func .? <P1>(lhs: @escaping (P1) throws -> Void, rhs: Optional<P1>) rethrows -> Void {
+    if let rhs {
+        try lhs(rhs)
+    }
+}
+
+func .? <P1>(lhs: @escaping (P1) -> Void, rhs: Optional<P1>) -> Void {
+    if let rhs {
+        lhs(rhs)
+    }
+}
+
+//extension Error: String { }
+extension String: Error { }
+
+let e: Error? = "adsad"
+
+let c = { x in print(x) }
+
+//throw .? e
+
+let optInt: Int? = 6
+
+c .? optInt
+
+do {
+    try tthrow .? e
+}
+catch {
+    print(">>> Caught the error \(error)")
+}
+
+// might as well just have maybeThrow as a func, if we have to wrap it like this anyway!
+// (see further below)
+func tthrow(e: Error) throws {
+    throw(e)
+}
+
+// ... like so:
+func maybeThrow(e: Error?) throws {
+    if let e {
+        throw(e)
+    }
+}
+
+
+
+prefix operator .?
+
+prefix func .? <P1, R1>(f: @escaping (P1) -> R1) -> (P1) -> R1 {
+    { p1 in
+        f(p1)
+    }
+}
+
+
+// don't forget the throws and async variants too
+
