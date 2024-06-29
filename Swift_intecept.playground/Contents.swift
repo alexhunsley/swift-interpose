@@ -55,29 +55,29 @@ public struct ClosureDebug {
         }
     }
 
-    public func callAsFunction<A, B>(tag: String? = nil) -> (A, B) -> Void {
-        { (a: A, b: B) in
-            output("a = \(a), b = \(b)")
+    public func callAsFunction<P1, P2>(tag: String? = nil) -> (P1, P2) -> Void {
+        { (p1: P1, p2: P2) in
+            output("P1 = \(p1), P2 = \(p2)")
         }
     }
 
-    public func callAsFunction<A, B, C>(tag: String? = nil) -> (A, B, C) -> Void {
-        { (a: A, b: B, c: C) in
-            output("a = \(a), b = \(b), c = \(c)")
-        }
-    }
-
-    public func callAsFunction<A, B, C, D>(tag: String? = nil) -> (A, B, C, D) -> Void {
-        { (a: A, b: B, c: C, d: D) in
-            output("a = \(a), b = \(b), c = \(c), d = \(d)")
-        }
-    }
-
-    public func callAsFunction<A, B, C, D, E>(tag: String? = nil) -> (A, B, C, D, E) -> Void {
-        { (a: A, b: B, c: C, d: D, e: E) in
-            output("a = \(a), b = \(b), c = \(c), d = \(d), e = \(e)")
-        }
-    }
+//    public func callAsFunction<A, B, C>(tag: String? = nil) -> (A, B, C) -> Void {
+//        { (a: A, b: B, c: C) in
+//            output("a = \(a), b = \(b), c = \(c)")
+//        }
+//    }
+//
+//    public func callAsFunction<A, B, C, D>(tag: String? = nil) -> (A, B, C, D) -> Void {
+//        { (a: A, b: B, c: C, d: D) in
+//            output("a = \(a), b = \(b), c = \(c), d = \(d)")
+//        }
+//    }
+//
+//    public func callAsFunction<A, B, C, D, E>(tag: String? = nil) -> (A, B, C, D, E) -> Void {
+//        { (a: A, b: B, c: C, d: D, e: E) in
+//            output("a = \(a), b = \(b), c = \(c), d = \(d), e = \(e)")
+//        }
+//    }
 
     // ----------------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ public struct ClosureDebug {
     // and not for shimming actions which was the first use case.
 
 //    public func callAsFunction<A, B, Z>(f: @escaping (A, B) -> Z, tag: String? = nil) -> (A, B) -> Z where Z: Emptoid {
-    public func callAsFunction<A, B, Z>(f: @escaping (A, B) -> Z, tag: String? = nil) -> (A, B) -> Z {
+    public func callAsFunction<P1, P2, R1>(f: @escaping (P1, P2) -> R1, tag: String? = nil) -> (P1, P2) -> R1 {
 //        func internalo(a: A, b: B, z1: Z = Z.emptoid, z2: Z = Z.emptoid) -> Z {
 //        func internalo(a: A, b: B) -> Z {
 //            let retZ = f(a, b)
@@ -94,22 +94,30 @@ public struct ClosureDebug {
 //            return retZ
 //        }
 
-        { (a: A, b: B) -> Z in
+        { (p1: P1, p2: P2) -> R1 in
 
-            let retZ = f(a, b)
-            output("a = \(a), b = \(b)")
-            return retZ
+            let ret = f(p1, p2)
+            output("P1 = \(p1), P2 = \(p2)")
+            return ret
         }
 //        return internalo
     }
 
-    public func callAsFunction<A, B, Z1, Z2>(f: @escaping (A, B) -> (Z1, Z2), tag: String? = nil) -> (A, B) -> (Z1, Z2) {
-        { (a: A, b: B) -> (Z1, Z2) in
+    public func callAsFunction<P1, P2, R1, R2>(f: @escaping (P1, P2) -> (R1, R2), tag: String? = nil) -> (P1, P2) -> (R1, R2) {
+//        func internalo(a: A, b: B, z1: Z = Z.emptoid, z2: Z = Z.emptoid) -> Z {
+//        func internalo(a: A, b: B) -> Z {
+//            let retZ = f(a, b)
+//            output("a = \(a), b = \(b)")
+//            return retZ
+//        }
 
-            let retZ = f(a, b)
-            output("a = \(a), b = \(b)")
-            return retZ
+        { (p1: P1, p2: P2) -> (R1, R2) in
+
+            let ret = f(p1, p2)
+            output("P1 = \(p1), P2 = \(p2)")
+            return ret
         }
+//        return internalo
     }
 
     //    public func callAsFunction<A, B, Z>(f: (A, B) -> Z, tag: String? = nil) -> (A, B) -> Z {
@@ -136,7 +144,8 @@ func someThing3(_ f: (Int, String) -> (CGFloat, CGFloat)) {
     print(ret)
 }
 
-//someThing(ClosureDebug()())
+someThing(ClosureDebug()())
+
 someThing2(ClosureDebug()(f:
                             { (a: Int, b: String) -> CGFloat in
                                 return CGFloat(9.0)
