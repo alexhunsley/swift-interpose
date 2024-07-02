@@ -10,18 +10,18 @@ typealias IntInVoidOut = (Int) -> Void
 
 class InterposeTests: XCTestCase {
 
-    var logStub: LogStub!
+    var logSpy: LogSpy!
 
     override func setUp() {
-        logStub = LogStub()
+        logSpy = LogSpy()
         // logStub.log doens't contain the prefix bit, etc!
         // could have attachLogger? For multiples. Getting a bit complicated there...!
-        Interpose.logger = logStub.log
+        Interpose.logger = logSpy.log
         Interpose.dateProvider = Interpose.mockDateProvider
     }
 
     override func tearDown() {
-        logStub = nil
+        logSpy = nil
         Interpose.logger = Interpose.defaultLogger
         Interpose.dateProvider = Interpose.defaultDateProvider
     }
@@ -30,11 +30,11 @@ class InterposeTests: XCTestCase {
     func test_voidInVoidOut_asDummy_invokesLogger() throws {
         takeVoidInVoidOutAndInvoke(handler: { })
 
-        XCTAssertEqual(logStub.seen_strings, [])
+        XCTAssertEqual(logSpy.seen_strings, [])
 
         takeVoidInVoidOutAndInvoke(handler: __iPrint())
 
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock]"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
 
 //        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
 //
@@ -47,28 +47,28 @@ class InterposeTests: XCTestCase {
     func test_voidInVoidOut_asShim_invokesTargetHandler_andInvokesLogger() throws {
         takeVoidInVoidOutAndInvoke(handler: { })
 
-        XCTAssertEqual(logStub.seen_strings, [])
+        XCTAssertEqual(logSpy.seen_strings, [])
 
         let expectation = expectation(description: "target handler is invoked")
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(logger: logStub.log) {
+        takeVoidInVoidOutAndInvoke(handler: __iPrint(logger: logSpy.log) {
             // this is the 'real' handler
             expectation.fulfill()
         })
 
         waitForExpectations(timeout: 0.2)
 
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock]"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
     }
 
     func test_voidInVoidOut_asShim_withTag_invokesTargetHandler_andInvokesLogger() throws {
         takeVoidInVoidOutAndInvoke(handler: { })
 
-        XCTAssertEqual(logStub.seen_strings, [])
+        XCTAssertEqual(logSpy.seen_strings, [])
 
         let expectation = expectation(description: "target handler is invoked")
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "helloTag", logger: logStub.log) {
+        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "helloTag", logger: logSpy.log) {
             // this is the 'real' handler
             print("Real handler, void")
             expectation.fulfill()
@@ -76,7 +76,7 @@ class InterposeTests: XCTestCase {
 
         waitForExpectations(timeout: 0.2)
 
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock] helloTag"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] helloTag"])
     }
 
 
@@ -84,34 +84,34 @@ class InterposeTests: XCTestCase {
         takeIntInVoidOutAndInvoke(handler: { i in })
 
         // expect that our log stub is not invoked
-        XCTAssertEqual(logStub.seen_strings, [])
+        XCTAssertEqual(logSpy.seen_strings, [])
 
         takeIntInVoidOutAndInvoke(handler: __iPrint())
 
         // expect that our log stub is invoked (no tag)
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock] P1 = 2"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 2"])
 
         takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
 
         // expect that our log stub is invoked (with tag)
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock] P1 = 2", "[Date mock] tag1 P1 = 2"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 2", "[Date mock] tag1 P1 = 2"])
     }
 
     func test_intInVoidOut_asDummy_invokesLoggerTwice() throws {
         takeIntInVoidOutAndInvokeTwice(handler: { i in })
 
         // expect that our log stub is not invoked
-        XCTAssertEqual(logStub.seen_strings, [])
+        XCTAssertEqual(logSpy.seen_strings, [])
 
         takeIntInVoidOutAndInvokeTwice(handler: __iPrint())
 
         // expect that our log stub is invoked (no tag)
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock] P1 = 3", "[Date mock] P1 = 4"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 3", "[Date mock] P1 = 4"])
 
         takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
 
         // expect that our log stub is invoked (with tag)
-        XCTAssertEqual(logStub.seen_strings, ["[Date mock] P1 = 3", "[Date mock] P1 = 4", "[Date mock] tag1 P1 = 2"])
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 3", "[Date mock] P1 = 4", "[Date mock] tag1 P1 = 2"])
     }
 
     // MARK: - Helper funcs / closures
@@ -140,7 +140,7 @@ class InterposeTests: XCTestCase {
 
 // mutating stuff when using struct... use class for now,
 // look at this later
-class LogStub {
+class LogSpy {
     public var seen_strings = [String]()
 
     func log(str: String) {
