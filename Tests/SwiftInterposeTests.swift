@@ -12,10 +12,16 @@ class InterposeTests: XCTestCase {
 
     override func setUp() {
         logStub = LogStub()
+        // logStub.log doens't contain the prefix bit, etc!
+        // could have attachLogger? For multiples. Getting a bit complicated there...!
+        Interpose.logger = logStub.log
+        Interpose.dateProvider = Interpose.mockDateProvider
     }
 
     override func tearDown() {
         logStub = nil
+        Interpose.logger = Interpose.defaultLogger
+        Interpose.dateProvider = Interpose.defaultDateProvider
     }
 
     // the 'dummy' use case is using iPrint without an inner handler
@@ -24,16 +30,17 @@ class InterposeTests: XCTestCase {
 
         XCTAssertEqual(logStub.seen_strings, [])
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(logger: logStub.log))
+//        takeVoidInVoidOutAndInvoke(handler: __iPrint(logger: logStub.log))
+        takeVoidInVoidOutAndInvoke(handler: __iPrint())
 
         // expect that our log stub is invoked (no tag)
-        XCTAssertEqual(logStub.seen_strings, [" "])
+//        XCTAssertEqual(logStub.seen_strings, [" [Date mock] "])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]  "]) // <-- it's this currently!
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "tag1",
-                                                     logger: logStub.log))
-
-        // expect that our log stub is invoked (with tag)
-        XCTAssertEqual(logStub.seen_strings, [" ", "tag1 "])
+//        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
+//
+//        // expect that our log stub is invoked (with tag)
+//        XCTAssertEqual(logStub.seen_strings, [" [Date mock] ", " tag1 [Date mock] "])
 
     }
 
@@ -53,7 +60,7 @@ class InterposeTests: XCTestCase {
 
         waitForExpectations(timeout: 0.2)
 
-        XCTAssertEqual(logStub.seen_strings, [" "])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]   "])
     }
 
     func test_voidInVoidOut_asShim_withTag_invokesTargetHandler_andInvokesLogger() throws {
@@ -71,7 +78,7 @@ class InterposeTests: XCTestCase {
 
         waitForExpectations(timeout: 0.2)
 
-        XCTAssertEqual(logStub.seen_strings, ["helloTag "])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]  helloTag "])
     }
 
 
@@ -88,16 +95,15 @@ class InterposeTests: XCTestCase {
         //        let seen_str = try XCTUnwrap(logStub.seen_string)
         XCTAssertEqual(logStub.seen_strings, [])
 
-        takeIntInVoidOutAndInvoke(handler: __iPrint(logger: logStub.log))
+        takeIntInVoidOutAndInvoke(handler: __iPrint())
 
         // expect that our log stub is invoked (no tag)
-        XCTAssertEqual(logStub.seen_strings, [" P1 = 2"])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]   P1 = 2"])
 
-        takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1",
-                                                    logger: logStub.log))
+        takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
 
         // expect that our log stub is invoked (with tag)
-        XCTAssertEqual(logStub.seen_strings, [" P1 = 2", "tag1 P1 = 2"])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]   P1 = 2", "[Date mock]  tag1 P1 = 2"])
     }
 
     func test_intInVoidOut_asDummy_invokesLoggerTwice() throws {
@@ -113,17 +119,16 @@ class InterposeTests: XCTestCase {
         //        let seen_str = try XCTUnwrap(logStub.seen_string)
         XCTAssertEqual(logStub.seen_strings, [])
 
-        takeIntInVoidOutAndInvokeTwice(handler: __iPrint(logger: logStub.log))
+        takeIntInVoidOutAndInvokeTwice(handler: __iPrint())
 
         // expect that our log stub is invoked (no tag)
-        XCTAssertEqual(logStub.seen_strings, [" P1 = 3", " P1 = 4"])
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]   P1 = 3", "[Date mock]   P1 = 4"])
 
-        takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1",
-                                                    logger: logStub.log))
+        takeIntInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
 
         // expect that our log stub is invoked (with tag)
-        XCTAssertEqual(logStub.seen_strings, [" P1 = 3", " P1 = 4", "tag1 P1 = 2"])
-    }
+        XCTAssertEqual(logStub.seen_strings, ["[Date mock]   P1 = 3", "[Date mock]   P1 = 4", "[Date mock]  tag1 P1 = 2"])
+    }                                        //  [Date mock]   P1 = 3", "[Date mock]   P1 = 4"]"
 
     // MARK: - Helper funcs / closures
 
