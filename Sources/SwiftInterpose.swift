@@ -52,7 +52,8 @@ public struct Interpose {
 //    static var logger: LoggingProvider = Interpose.defaultLogger
     public static var logger: LoggingProvider {
         get {
-            // guardrail against user using this instead of `log`
+            // guardrail against us using this instead of `log`.
+            // Necessary because .log decorates the log string with e.g. function name etc.
             { _ in
                 assertionFailure("Interpose error: do not call Interpose.logger; instead use Interpose.log.")
             }
@@ -66,10 +67,10 @@ public struct Interpose {
 
     /// -----------------------
 
-    fileprivate static func logPrefix() -> String {
+    fileprivate static func logPrefix() -> [String] {
         print("hjhj IN logPrefix returning: |\(Interpose.dateProvider())|")
 
-        return "\(Interpose.dateProvider()) " //\(tag ?? "") "
+        return ["\(Interpose.dateProvider())"]
     }
 
 //    public static func log(str: String) {
@@ -77,9 +78,18 @@ public struct Interpose {
 //    }
 
     // how logs are done
-    public static let log = { (str: String) in
+    public static let log = { (strs: [String]) in
         print("hjhj IN DEFAULT LOGGER")
-        _logger("\(Interpose.logPrefix()) \(str)")
+
+        // remove empty strings to avoid repeated space chars in log string
+        let logEntryComponents: [String] = Interpose.logPrefix() + strs
+            .filter { !$0.isEmpty }
+
+//            .compactMap {
+//                $0.count == 0 ? nil : $0
+//            }
+
+        _logger(String(logEntryComponents.joined(separator: " ")))
     }
 }
 
@@ -91,7 +101,8 @@ public let __iPrintLogger = { str in print(str) }
 public func __iPrint(tag: String? = nil) -> () -> Void {
     {
         print("hjhj calling Interpose.logger with tag bit = |\(tag ?? "")|")
-        Interpose.log("\(tag ?? "")")
+//        Interpose.log(["\(tag ?? "")"])
+        Interpose.log([tag ?? ""])
     }
 }
 
@@ -100,7 +111,8 @@ public func __iPrint(tag: String? = nil,
                      f: @escaping () -> Void) -> () -> Void {
     {
         f()
-        Interpose.log("\(tag ?? "") ")
+//        Interpose.log("\(tag ?? "")")
+        Interpose.log([tag ?? ""])
     }
 }
 
@@ -109,7 +121,7 @@ public func __iPrint(tag: String? = nil,
 ///
 public func __iPrint<P1>(tag: String? = nil) -> (P1) -> Void {
     { (p1: P1) in
-        Interpose.log("\(tag ?? "") P1 = \(p1)")
+        Interpose.log(["\(tag ?? "")", "P1 = \(p1)"])
     }
 }
 
@@ -117,7 +129,7 @@ public func __iPrint<P1>(tag: String? = nil,
                          f: @escaping (P1) -> Void) -> (P1) -> Void {
     { (p1: P1) in
         f(p1)
-        Interpose.log("P1 = \(p1)")
+        Interpose.log(["P1 = \(p1)"])
     }
 }
 
@@ -134,7 +146,7 @@ public func __iPrint<P1, R1>(tag: String? = nil,
                              f: @escaping (P1) -> R1) -> (P1) -> R1 {
     { (p1: P1) in
         let ret = f(p1)
-        Interpose.log("\(tag ?? "") \(Interpose.dateProvider()) P1 = \(p1), Returns = \(ret)")
+        Interpose.log([tag ?? "", "\(Interpose.dateProvider())", "P1 = \(p1), Returns = \(ret)"])
         return ret
     }
 }
