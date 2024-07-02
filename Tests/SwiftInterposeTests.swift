@@ -8,6 +8,8 @@ import SwiftInterpose
 typealias VoidInVoidOut = () -> Void
 typealias IntInVoidOut = (Int) -> Void
 
+// rename logger to something more general?
+// secretAgent? :)
 class InterposeTests: XCTestCase {
 
     var logSpy: LogSpy!
@@ -36,10 +38,10 @@ class InterposeTests: XCTestCase {
 
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
 
-//        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
-//
-//        // expect that our log stub is invoked (with tag)
-//        XCTAssertEqual(logStub.seen_strings, [" [Date mock] ", " tag1 [Date mock] "])
+        //        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "tag1"))
+        //
+        //        // expect that our log stub is invoked (with tag)
+        //        XCTAssertEqual(logStub.seen_strings, [" [Date mock] ", " tag1 [Date mock] "])
 
     }
 
@@ -78,7 +80,6 @@ class InterposeTests: XCTestCase {
 
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock] helloTag"])
     }
-
 
     func test_intInVoidOut_asDummy_invokesLogger() throws {
         takeIntInVoidOutAndInvoke(handler: { i in })
@@ -135,15 +136,5 @@ class InterposeTests: XCTestCase {
     func takeIntInVoidOutAndInvokeTwice(handler: IntInVoidOut) {
         handler(3)
         handler(4)
-    }
-}
-
-// mutating stuff when using struct... use class for now,
-// look at this later
-class LogSpy {
-    public var seen_strings = [String]()
-
-    func log(str: String) {
-        seen_strings.append(str)
     }
 }
