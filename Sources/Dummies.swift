@@ -7,6 +7,8 @@
 
 import Foundation
 
+// Should really be using code generation for these repetitive things.
+
 // MARK: - 0 in dummies
 
 // Dummy (0 in 0 out)

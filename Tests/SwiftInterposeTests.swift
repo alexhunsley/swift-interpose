@@ -211,6 +211,4 @@ class InterposeTests: XCTestCase {
         takeVoidInVoidOutAndDoNotInvoke(handler: __iAssertCalled())
         waitForExpectations(timeout: expectationTimeout)
     }
-
-    // use the PF concurrency tool to avoid actual sleeps? In the tests only?
 }

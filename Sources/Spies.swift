@@ -7,6 +7,8 @@
 
 import Foundation
 
+// Should really be using code generation for these repetitive things.
+
 // NOTE: we don't make our f funcs be optional, and handle
 // them being present or not (nil) in one place, because
 // otherwise we'd always have to do DefaultValueProviding,
