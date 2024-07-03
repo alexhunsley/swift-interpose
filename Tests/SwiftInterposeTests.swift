@@ -94,13 +94,13 @@ class InterposeTests: XCTestCase {
     }
 
     func test_asyncVoidInVoidOut_asShim_invokesTargetHandler_andInvokesLogger() async throws {
-        await takeAsyncVoidInVoidOutAndInvoke(handler: { })
+        await takeVoidInVoidOutAndInvoke(handler: { })
 
         XCTAssertEqual(logSpy.seen_strings, [])
 
         let expectation = expectation(description: "target handler is invoked")
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint {
+        await takeVoidInVoidOutAndInvoke(handler: __iPrint {
             // this is the 'real' handler
             expectation.fulfill()
         })
@@ -109,9 +109,6 @@ class InterposeTests: XCTestCase {
 
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
     }
-
-
-
 
     func test_voidInVoidOut_asShim_withTag_invokesTargetHandler_andInvokesLogger() throws {
         takeVoidInVoidOutAndInvoke(handler: { })
@@ -131,6 +128,23 @@ class InterposeTests: XCTestCase {
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock] helloTag"])
     }
 
+    func test_asyncVoidInVoidOut_asShim_withTag_invokesTargetHandler_andInvokesLogger() async throws {
+        await takeVoidInVoidOutAndInvoke(handler: { })
+
+        XCTAssertEqual(logSpy.seen_strings, [])
+
+        let expectation = expectation(description: "target handler is invoked")
+
+        await takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "helloTag") {
+            // this is the 'real' handler
+            expectation.fulfill()
+        })
+
+        await fulfillment(of: [expectation], timeout: expectationTimeout)
+
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock] helloTag"])
+    }
+
     // MARK: - __iAssertNeverCalled
 
     func test_assertNeverCallWhenCalled() {
@@ -143,6 +157,16 @@ class InterposeTests: XCTestCase {
         waitForExpectations(timeout: expectationTimeout)
     }
 
+    func test_asyncAssertNeverCallWhenCalled() async {
+        let expectation = expectation(description: "asserted is called")
+
+        Interpose.assertFailer = { str in
+            expectation.fulfill()
+        }
+        await takeVoidInVoidOutAndInvoke(handler: __iAssertNeverCalled())
+        await fulfillment(of: [expectation], timeout: expectationTimeout)
+    }
+
     func test_assertNeverCallWhenNotCalled() {
         let expectation = expectation(description: "asserted is not called")
         expectation.isInverted = true
@@ -152,6 +176,17 @@ class InterposeTests: XCTestCase {
         }
         takeVoidInVoidOutAndDoNotInvoke(handler: __iAssertNeverCalled())
         waitForExpectations(timeout: expectationTimeout)
+    }
+
+    func test_asyncAssertNeverCallWhenNotCalled() async {
+        let expectation = expectation(description: "asserted is not called")
+        expectation.isInverted = true
+
+        Interpose.assertFailer = { str in
+            expectation.fulfill()
+        }
+        await takeVoidInVoidOutAndDoNotInvoke(handler: __iAssertNeverCalled())
+        await fulfillment(of: [expectation], timeout: expectationTimeout)
     }
 
     // MARK: - __iAssertCalled
