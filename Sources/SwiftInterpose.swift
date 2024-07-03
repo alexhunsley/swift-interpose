@@ -21,6 +21,7 @@ extension Int: DefaultValueProviding {
 public struct Interpose {
     public typealias FormattedDateProvider = () -> String
     public typealias LoggingProvider = (String) -> Void
+    public typealias AssertProvider = (String) -> Void
 
     /// -----------------------
 
@@ -36,11 +37,6 @@ public struct Interpose {
     public static var dateProvider: FormattedDateProvider = Interpose.defaultDateProvider
 
     /// -----------------------
-
-    public static let defaultLogger: LoggingProvider = { str in
-        print("hjhj IN DEFAULT LOGGER")
-        print("\(Interpose.logPrefix()) \(str)")
-    }
 
     // need way to pass in logger, but not call it!
     // as need to call log instead to prep the string with e.g. prefix.
@@ -62,14 +58,38 @@ public struct Interpose {
             Interpose._logger = newValue
         }
     }
-
     static var _logger: LoggingProvider = Interpose.defaultLogger
+
+    public static let defaultLogger: LoggingProvider = { str in
+        print("hjhj IN DEFAULT LOGGER")
+        print("\(Interpose.logPrefix()) \(str)")
+    }
+
+    /// ----------------------------------------------------------------------------------------
+
+    public static var asserter: AssertProvider {
+        get {
+            // guardrail against us using this instead of `log`.
+            // Necessary because .log decorates the log string with e.g. function name etc.
+            { _ in
+                assertionFailure("Interpose error: do not call Interpose.asserter; instead use Interpose.assert.")
+            }
+        }
+        set {
+            Interpose._asserter = newValue
+        }
+    }
+    static var _asserter: AssertProvider = Interpose.defaultAsserter
+
+    public static let defaultAsserter: AssertProvider = { str in
+        print("\(Interpose.logPrefix()) \(str)")
+        assertionFailure(str)
+    }
+
 
     /// -----------------------
 
     fileprivate static func logPrefix() -> [String] {
-        print("hjhj IN logPrefix returning: |\(Interpose.dateProvider())|")
-
         return ["\(Interpose.dateProvider())"]
     }
 
@@ -79,21 +99,26 @@ public struct Interpose {
 
     // how logs are done
     public static let log = { (strs: [String]) in
-        print("hjhj IN DEFAULT LOGGER")
+        _logger(buildLogStr(forStrings: strs))
+    }
 
+    // do an assert
+    public static let assert = { (strs: [String]) in
+        _asserter(buildLogStr(forStrings: strs))
+    }
+//
+//    public static let assertFail = { (strs: [String]) in
+//        _logger(buildLogStr(forStrings: strs))
+//    }
+
+    private static func buildLogStr(forStrings strs: [String]) -> String {
         // remove empty strings to avoid repeated space chars in log string
         let logEntryComponents: [String] = Interpose.logPrefix() + strs
             .filter { !$0.isEmpty }
 
-//            .compactMap {
-//                $0.count == 0 ? nil : $0
-//            }
-
-        _logger(String(logEntryComponents.joined(separator: " ")))
+        return String(logEntryComponents.joined(separator: " "))
     }
 }
-
-public let __iPrintLogger = { str in print(str) }
 
 //public func __iPrint(tag: String? = nil,
 //                     logger: @escaping (String) -> Void = __iPrintLogger,
@@ -107,7 +132,6 @@ public func __iPrint(tag: String? = nil) -> () -> Void {
 }
 
 public func __iPrint(tag: String? = nil,
-                     logger: @escaping (String) -> Void = __iPrintLogger,
                      f: @escaping () -> Void) -> () -> Void {
     {
         f()
@@ -150,3 +174,14 @@ public func __iPrint<P1, R1>(tag: String? = nil,
         return ret
     }
 }
+
+// -------------------------------
+
+public func __iAssertNeverCall(tag: String? = nil, callFunc: String = #function, callFile: String = #file) -> () -> Void {
+    {
+        // TODO what about callFunc above etc?
+        Interpose.assert([tag ?? "", "\(Interpose.dateProvider())"])
+    }
+}
+
+// and an XCTAssert version for unit tests?

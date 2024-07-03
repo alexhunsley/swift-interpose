@@ -30,6 +30,9 @@ class InterposeTests: XCTestCase {
 
     // the 'dummy' use case is using iPrint without an inner handler
     func test_voidInVoidOut_asDummy_invokesLogger() throws {
+        // the whole throws bit is interesting. How to handle that
+        // with my interpose bit? In particular, if my assert wants to throw
+        // to indicate assert failed? Is it possible (or advisable)?
         takeVoidInVoidOutAndInvoke(handler: { })
 
         XCTAssertEqual(logSpy.seen_strings, [])
@@ -53,7 +56,7 @@ class InterposeTests: XCTestCase {
 
         let expectation = expectation(description: "target handler is invoked")
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(logger: logSpy.log) {
+        takeVoidInVoidOutAndInvoke(handler: __iPrint {
             // this is the 'real' handler
             expectation.fulfill()
         })
@@ -70,7 +73,7 @@ class InterposeTests: XCTestCase {
 
         let expectation = expectation(description: "target handler is invoked")
 
-        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "helloTag", logger: logSpy.log) {
+        takeVoidInVoidOutAndInvoke(handler: __iPrint(tag: "helloTag") {
             // this is the 'real' handler
             print("Real handler, void")
             expectation.fulfill()
@@ -115,6 +118,20 @@ class InterposeTests: XCTestCase {
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 3", "[Date mock] P1 = 4", "[Date mock] tag1 P1 = 2"])
     }
 
+    func test_neverCallWhenNeverCalled() {
+        takeVoidInVoidOutAndDoNotInvoke(handler: __iAssertNeverCall())
+    }
+
+    func test_neverCallWhenCalled() {
+        // replace default asserter with XCTAssert
+
+        Interpose.asserter = { str in
+//            throw("Goober")
+//            XCTFail("SwiftInterpose: called __iAssertNeverCalled [\(str)]")
+        }
+//        XCTAssertThrowsError(try takeVoidInVoidOutAndInvoke(handler: __iAssertNeverCall()))
+    }
+
     // MARK: - Helper funcs / closures
 
     let voidInVoidOut = {
@@ -123,6 +140,9 @@ class InterposeTests: XCTestCase {
 
     let intInVoidOut = { (i: Int) in
         print("intInVoidOut got \(i)")
+    }
+
+    func takeVoidInVoidOutAndDoNotInvoke(handler: VoidInVoidOut) {
     }
 
     func takeVoidInVoidOutAndInvoke(handler: VoidInVoidOut) {
