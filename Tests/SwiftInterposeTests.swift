@@ -3,13 +3,6 @@
 import XCTest
 import SwiftInterpose
 
-// sort out the spaces in strings!
-
-typealias VoidInVoidOut = () throws -> Void
-typealias AsyncVoidInVoidOut = () async throws -> Void
-typealias IntInVoidOut = (Int) throws -> Void
-typealias AsyncIntInVoidOut = (Int) async throws -> Void
-
 // rename logger to something more general?
 // secretAgent? :)
 class InterposeTests: XCTestCase {
@@ -185,45 +178,4 @@ class InterposeTests: XCTestCase {
     }
 
     // use the PF concurrency tool to avoid actual sleeps? In the tests only?
-
-
-    // MARK: - Helper funcs / closures
-
-    let voidInVoidOut = {
-        print("voidInVoidOut")
-    }
-
-    let intInVoidOut = { (i: Int) in
-        print("intInVoidOut got \(i)")
-    }
-
-    func takeVoidInVoidOutAndDoNotInvoke(handler: VoidInVoidOut) {
-    }
-
-    func takeVoidInVoidOutAndInvoke(handler: VoidInVoidOut) rethrows {
-        try handler()
-    }
-
-    func takeAsyncVoidInVoidOutAndInvoke(handler: @escaping AsyncVoidInVoidOut) async rethrows {
-        try await handler()
-    }
-
-
-    func takeIntInVoidOutAndInvoke(handler: IntInVoidOut) rethrows {
-        try handler(2)
-    }
-
-    func takeAsyncIntInVoidOutAndInvoke(handler: @escaping IntInVoidOut) async rethrows {
-        try handler(2)
-    }
-
-    func takeIntInVoidOutAndInvokeTwice(handler: IntInVoidOut) rethrows {
-        try handler(3)
-        try handler(4)
-    }
-
-    func takeAsyncIntInVoidOutAndInvokeTwice(handler: @escaping AsyncIntInVoidOut) async rethrows {
-        try await handler(3)
-        try await handler(4)
-    }
 }
