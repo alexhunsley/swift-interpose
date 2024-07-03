@@ -40,4 +40,3 @@ extension Date: DefaultValueProviding {
 //extension ClosedRange: DefaultValueProviding {
 //    public static var defaultValue = 0..<1
 //}
-
