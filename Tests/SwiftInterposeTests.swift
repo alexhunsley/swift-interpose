@@ -28,9 +28,6 @@ class InterposeTests: XCTestCase {
 
     // the 'dummy' use case is using iPrint without an inner handler
     func test_voidInVoidOut_asDummy_invokesLogger() throws {
-        // the whole throws bit is interesting. How to handle that
-        // with my interpose bit? In particular, if my assert wants to throw
-        // to indicate assert failed? Is it possible (or advisable)?
         takeVoidInVoidOutAndInvoke(handler: { })
 
         XCTAssertEqual(logSpy.seen_strings, [])
@@ -55,6 +52,18 @@ class InterposeTests: XCTestCase {
 
         // expect that our log stub is invoked (with tag)
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock] P1 = 2", "[Date mock] tag1 P1 = 2"])
+    }
+
+    func test_voidInStringOut_asDummy_invokesLogger_andUsesDefaultValue() throws {
+        let returnedString = takeIntInStringOutAndInvoke(handler: __iPrint())
+        XCTAssertEqual(returnedString, String.defaultValue)
+    }
+
+    func test_voidInStringOut_asSpy_invokesLogger_andUsesDefaultValue() throws {
+        let returnedString = takeIntInStringOutAndInvoke(intValue: 7, handler: __iPrint { integer in
+            "a returned string \(integer)"
+        })
+        XCTAssertEqual(returnedString, "a returned string 7")
     }
 
     func test_intInVoidOut_asDummy_invokesLoggerTwice() throws {

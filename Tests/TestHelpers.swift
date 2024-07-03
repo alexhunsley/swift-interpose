@@ -10,34 +10,16 @@ import Foundation
 typealias VoidVoid = () throws -> Void
 typealias AsyncVoidVoid = () async throws -> Void
 typealias IntVoid = (Int) throws -> Void
+typealias IntString = (Int) throws -> String
 typealias AsyncIntVoid = (Int) async throws -> Void
 
 extension InterposeTests {
-    // MARK: - Helper funcs / closures
-
-//    var voidInVoidOut: VoidVoid {
-//        {
-//            let _ = print("voidInVoidOut")
-//        }
-//    }
-
-//    var intInVoidOut: (Int) -> Void {
-//        { (i: Int) in
-//            let _ = print("intInVoidOut got \(i)")
-//        }
-//    }
-
-    // Interesting things:
-    //
-    // you can overload a func just on having async and no async.
-    // We use `syncTag` is just a marker so the async version of method can call the async one
-    // without ambiguity.
 
     // MARK: - 0 in 0 out, no invoke
 
     func takeVoidInVoidOutAndDoNotInvoke(handler: VoidVoid, syncTag: Never? = nil) rethrows {
     }
-    
+
     func takeVoidInVoidOutAndDoNotInvoke(handler: VoidVoid) async rethrows {
         try takeVoidInVoidOutAndDoNotInvoke(handler: handler, syncTag: nil)
     }
@@ -71,5 +53,11 @@ extension InterposeTests {
 
     func takeIntInVoidOutAndInvokeTwice(handler: IntVoid) async rethrows {
         try takeIntInVoidOutAndInvokeTwice(handler: handler, syncTag: nil)
+    }
+
+    // MARK: - 1 in 1 out, invoke
+
+    func takeIntInStringOutAndInvoke(intValue: Int = 1, handler: IntString, syncTag: Never? = nil) rethrows -> String {
+        try handler(intValue)
     }
 }
