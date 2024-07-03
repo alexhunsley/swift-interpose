@@ -5,8 +5,10 @@ import SwiftInterpose
 
 // sort out the spaces in strings!
 
-typealias VoidInVoidOut = () -> Void
-typealias IntInVoidOut = (Int) -> Void
+typealias VoidInVoidOut = () throws -> Void
+typealias AsyncVoidInVoidOut = () async throws -> Void
+typealias IntInVoidOut = (Int) throws -> Void
+typealias AsyncIntInVoidOut = (Int) async throws -> Void
 
 // rename logger to something more general?
 // secretAgent? :)
@@ -98,6 +100,26 @@ class InterposeTests: XCTestCase {
         XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
     }
 
+    func test_asyncVoidInVoidOut_asShim_invokesTargetHandler_andInvokesLogger() async throws {
+        await takeAsyncVoidInVoidOutAndInvoke(handler: { })
+
+        XCTAssertEqual(logSpy.seen_strings, [])
+
+        let expectation = expectation(description: "target handler is invoked")
+
+        takeVoidInVoidOutAndInvoke(handler: __iPrint {
+            // this is the 'real' handler
+            expectation.fulfill()
+        })
+
+        await fulfillment(of: [expectation], timeout: expectationTimeout)
+
+        XCTAssertEqual(logSpy.seen_strings, ["[Date mock]"])
+    }
+
+
+
+
     func test_voidInVoidOut_asShim_withTag_invokesTargetHandler_andInvokesLogger() throws {
         takeVoidInVoidOutAndInvoke(handler: { })
 
@@ -178,16 +200,30 @@ class InterposeTests: XCTestCase {
     func takeVoidInVoidOutAndDoNotInvoke(handler: VoidInVoidOut) {
     }
 
-    func takeVoidInVoidOutAndInvoke(handler: VoidInVoidOut) {
-        handler()
+    func takeVoidInVoidOutAndInvoke(handler: VoidInVoidOut) rethrows {
+        try handler()
     }
 
-    func takeIntInVoidOutAndInvoke(handler: IntInVoidOut) {
-        handler(2)
+    func takeAsyncVoidInVoidOutAndInvoke(handler: @escaping AsyncVoidInVoidOut) async rethrows {
+        try await handler()
     }
 
-    func takeIntInVoidOutAndInvokeTwice(handler: IntInVoidOut) {
-        handler(3)
-        handler(4)
+
+    func takeIntInVoidOutAndInvoke(handler: IntInVoidOut) rethrows {
+        try handler(2)
+    }
+
+    func takeAsyncIntInVoidOutAndInvoke(handler: @escaping IntInVoidOut) async rethrows {
+        try handler(2)
+    }
+
+    func takeIntInVoidOutAndInvokeTwice(handler: IntInVoidOut) rethrows {
+        try handler(3)
+        try handler(4)
+    }
+
+    func takeAsyncIntInVoidOutAndInvokeTwice(handler: @escaping AsyncIntInVoidOut) async rethrows {
+        try await handler(3)
+        try await handler(4)
     }
 }
