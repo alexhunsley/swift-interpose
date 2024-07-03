@@ -1,12 +1,3 @@
-// hello
-
-//@main
-//struct Main {
-//    static func main() {
-//        print("Hello")
-//    }
-//}
-
 import Foundation
 
 public protocol DefaultValueProviding {
@@ -21,12 +12,11 @@ extension Int: DefaultValueProviding {
 public struct Interpose {
     public typealias FormattedDateProvider = () -> String
     public typealias LoggingProvider = (String) -> Void
-    public typealias AssertProvider = (String) -> Void
+    public typealias AssertFailProvider = (String) -> Void
 
     /// -----------------------
 
     public static let defaultDateProvider: FormattedDateProvider = {
-        // TODO format it
         "\(Date())"
     }
 
@@ -67,7 +57,7 @@ public struct Interpose {
 
     /// ----------------------------------------------------------------------------------------
 
-    public static var asserter: AssertProvider {
+    public static var assertFailer: AssertFailProvider {
         get {
             // guardrail against us using this instead of `log`.
             // Necessary because .log decorates the log string with e.g. function name etc.
@@ -76,12 +66,12 @@ public struct Interpose {
             }
         }
         set {
-            Interpose._asserter = newValue
+            Interpose._assertFailer = newValue
         }
     }
-    static var _asserter: AssertProvider = Interpose.defaultAsserter
+    static var _assertFailer: AssertFailProvider = Interpose.defaultAssertFailer
 
-    public static let defaultAsserter: AssertProvider = { str in
+    public static let defaultAssertFailer: AssertFailProvider = { str in
         print("\(Interpose.logPrefix()) \(str)")
         assertionFailure(str)
     }
@@ -97,14 +87,14 @@ public struct Interpose {
 //        Interpose.logger("\(Interpose.logPrefix()) \(str)")
 //    }
 
-    // how logs are done
+    // log execution
     public static let log = { (strs: [String]) in
         _logger(buildLogStr(forStrings: strs))
     }
 
-    // do an assert
-    public static let assert = { (strs: [String]) in
-        _asserter(buildLogStr(forStrings: strs))
+    // assert fail execution
+    public static let assertionFail = { (strs: [String]) in
+        _assertFailer(buildLogStr(forStrings: strs))
     }
 //
 //    public static let assertFail = { (strs: [String]) in
@@ -157,14 +147,6 @@ public func __iPrint<P1>(tag: String? = nil,
     }
 }
 
-////public func __iWrap<P1>(tag: String? = nil, f: @escaping (P1) -> Void) -> (P1) -> Void {
-//public func __iPrint<P1>(tag: String? = nil, f: @escaping (P1) -> Void) -> (P1) -> Void {
-//    { (p1: P1) in
-//        f(p1)
-//        print("P1 = \(p1)")
-//    }
-//}
-
 //public func __iWrap<P1, R1>(tag: String? = nil, f: @escaping (P1) -> R1) -> (P1) -> R1 {
 public func __iPrint<P1, R1>(tag: String? = nil,
                              f: @escaping (P1) -> R1) -> (P1) -> R1 {
@@ -177,10 +159,21 @@ public func __iPrint<P1, R1>(tag: String? = nil,
 
 // -------------------------------
 
-public func __iAssertNeverCall(tag: String? = nil, callFunc: String = #function, callFile: String = #file) -> () -> Void {
+public func __iAssertNeverCalled(tag: String? = nil, callFunc: String = #function, callFile: String = #file) -> () -> Void {
     {
-        // TODO what about callFunc above etc?
-        Interpose.assert([tag ?? "", "\(Interpose.dateProvider())"])
+        Interpose.assertionFail([tag ?? "", "\(Interpose.dateProvider())"])
+    }
+}
+
+public func __iAssertCalled(tag: String? = nil, callFunc: String = #function, callFile: String = #file) -> () -> Void {
+    let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { timer in
+        print("QPQP __iAssertCalled timer popped, so asserting!")
+        Interpose.assertionFail([tag ?? "", "\(Interpose.dateProvider())"])
+    }
+
+    return {
+        print("QPQP __iAssertCalled timer.invalidate()")
+        timer.invalidate()
     }
 }
 
