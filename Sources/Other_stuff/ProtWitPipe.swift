@@ -266,8 +266,9 @@ struct LoginEvent: TopicRepresentable {
 public func do_it() {
     let loginAction = LoginAction(topic: .screenViewed)
 
-    // or:
-    let loginActionMakeTwo = .screenViewed.action
+    // or: append helper like .action or .event on to the topic.
+    // If I didn't have the clash, wouldn't even need the LoginAction/LoginTopic bit, I think!
+    let loginActionMakeTwo: LoginAction = LoginTopic.screenViewed.action
 
     // method one: non-init.
     // The generic magic lets us call .topic on a topic holder and create any other
