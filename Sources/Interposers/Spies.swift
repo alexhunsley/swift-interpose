@@ -56,13 +56,20 @@ public func __iPrint<P1>(tag: String? = nil,
     }
 }
 
+// TODO try recording the data sent, if we have a tag.
+
 // Spy (1 in 1 out)
 public func __iPrint<P1, R1>(tag: String? = nil,
                              f: @escaping (P1) -> R1) -> (P1) -> R1 {
     { (p1: P1) in
-        let ret = f(p1)
-        Interpose.log([tag ?? "", "\(Interpose.dateProvider())", "P1 = \(p1), Returns = \(ret)"])
-        return ret
+        let (r1) = f(p1)
+
+        if let tag {
+            let rec = Interpose.IRecord(p1: p1, r1: r1)
+            Interpose.default.addRecording(tag: tag, rec: rec)
+        }
+        Interpose.log([tag ?? "", "\(Interpose.dateProvider())", "P1 = \(p1), Returns = \(r1)"])
+        return r1
     }
 }
 

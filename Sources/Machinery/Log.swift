@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 extension Interpose {
     public typealias LoggingProvider = (String) -> Void
