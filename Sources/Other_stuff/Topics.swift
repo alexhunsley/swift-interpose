@@ -55,22 +55,35 @@ extension TopicRepresentable {
         OtherType.init(topic: topic)
     }
     // tried calc props, no worky. Could genericise the extension though!
-//    var topic<OtherType: TopicRepresentable>: OtherType {
-//        OtherType.init(topic: topic)
-//    }
+    //    var topic<OtherType: TopicRepresentable>: OtherType {
+    //        OtherType.init(topic: topic)
+    //    }
 
-//    func equals<OtherType: TopicRepresentable>(lhs: Self, rhs: OtherType) -> Bool where OtherType.Topic == Self.Topic, Self.Topic: Equatable {
-//        lhs.topic == rhs.topic
-//    }
+    //    func equals<OtherType: TopicRepresentable>(lhs: Self, rhs: OtherType) -> Bool where OtherType.Topic == Self.Topic, Self.Topic: Equatable {
+    //        lhs.topic == rhs.topic
+    //    }
 
-//     want to be able to just call .screenViewed.glove to make it fit whatever reciever type is!
+    //     want to be able to just call .screenViewed.glove to make it fit whatever reciever type is!
     // -- not working, see commented out code later
-//    func glove<OtherType: TopicRepresentable>() -> OtherType where OtherType.Topic == Self.Topic {
-//        OtherType(topicHolder: self)
-//    }
+    //    func glove<OtherType: TopicRepresentable>() -> OtherType where OtherType.Topic == Self.Topic {
+    //        OtherType(topicHolder: self)
+    //    }
 
     func equals<OtherType: TopicRepresentable>(_ other: OtherType) -> Bool where OtherType.Topic == Self.Topic {
         topic == other.topic
+    }
+
+    // call it topic value instead of case?
+    func hasSameTopicCase<OtherType: TopicRepresentable>(as other: OtherType) -> Bool where OtherType.Topic == Self.Topic  {
+        topic == other.topic
+    }
+
+    func hasSameTopic<OtherType: TopicRepresentable>(as other: OtherType) -> Bool where OtherType.Topic == Self.Topic {
+        true
+    }
+
+    func hasSameTopic<OtherType: TopicRepresentable>(as other: OtherType) -> Bool {
+        false
     }
 }
 
@@ -113,12 +126,12 @@ enum LoginTopic: Equatable {
 // no way to make this an enum too?
 // struct is still a value type tho, so not so bad.
 struct LoginAction: TopicRepresentable {
-    var topic: LoginTopic
+    let topic: LoginTopic
 }
 
 //struct LoginEvent: TopicRepresentable, Equatable {
 struct LoginEvent: TopicRepresentable {
-    var topic: LoginTopic
+    let topic: LoginTopic
 }
 
 
@@ -146,10 +159,6 @@ extension LoginTopic {
     var event: LoginEvent {
         LoginEvent(topic: self)
     }
-
-
-
-
 //    func action() -> LoginAction {
 //        LoginAction(topic: self)
 //    }
@@ -159,6 +168,14 @@ extension LoginTopic {
 //    }
 }
 
+enum GameTopic {
+    case screenViewed
+}
+
+struct GameAction: TopicRepresentable {
+    // TODO this var should be topicValue!
+    let topic: GameTopic
+}
 
 
 public func do_it() {
@@ -190,10 +207,25 @@ public func do_it() {
     if loginEvent.topic == loginAction.topic {
         print("They are the same")
     }
-    // also works
-    if loginEvent.equals(loginAction) {
-        print("They are the same, check 2")
+    // also works. is this ok? Or vague and weird?
+//     --  yeah is weird. Misuse of equals. Maybe equalsTopic? hmm.
+    // - no, I like hasSameTopic(as:) below, is clearer.
+//    if loginEvent.equals(loginAction) {
+//        print("They are the same, check 2")
+//    }
 
+    let gameAction = GameAction(topic: .screenViewed)
+
+    // this is actually checking for same topic CASE.
+    // we also want sameTopic?
+    if loginEvent.hasSameTopicCase(as: loginAction) {
+        print("login and login: They are the same topic case, check 2")
+    }
+    if loginEvent.hasSameTopic(as: gameAction) {
+        print("login and game: They are the same topic (not case), check 3")
+    }
+    if loginEvent.hasSameTopic(as: loginAction) {
+        print("login and login: They are the same topic (not case), check 4")
     }
 
     // accessing a topic
