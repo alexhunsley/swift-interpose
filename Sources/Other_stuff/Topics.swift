@@ -161,6 +161,9 @@ struct LoginEvent: TopicRepresentable {
     let topic: LoginTopic
 }
 
+struct GooberAction: TopicRepresentable {
+    let topic: LoginTopic
+}
 
 ///----------------------------------------------------------
 
@@ -173,19 +176,31 @@ protocol LoginActionable { }
 
 // computed property version
 //extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
-extension LoginActionable where Self: Topic { //}, Self.Topic == LoginTopic {
-    //    typealias Topic = LoginTopic
 
-    // computed property form.
-    //
-    var action: LoginAction {
-        LoginAction(topic: self)
-//        LoginAction(aspect: topicRepr)
-    }
-}
+//extension LoginActionable { // where Self.Topic == LoginTopic { //} where Self: Topic { //},
+//    //    typealias Topic = LoginTopic
+//
+//    // computed property form.
+//    //
+//    var action: LoginAction {
+//        // so self is a topic, but below line requires LoginTopic.
+//        // Can't do `Self: LoginTopic` on extension def!
+//        let tr = TopicRepresentable(
+//        LoginAction(topic: self)
+////        LoginAction(aspect: topicRepr)
+//    }
+//}
 
 // function form. computed property is nicer!
 // (called action2 just so no clash and can demo both compiling)
+extension LoginActionable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
+//    func action2<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
+    func action2<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
+//        ThingAction(topic: self.topic)
+        ThingAction(topic: self)
+//        ThingAction(aspect: self)
+    }
+}
 //extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
 //    func action2() -> LoginAction where Topic == LoginTopic {
 //        LoginAction(topic: self.topic)
@@ -230,7 +245,7 @@ public func do_it() {
 
     // or: append helper like .action or .event on to the topic.
     // If I didn't have the clash, wouldn't even need the LoginAction/LoginTopic bit, I think!
-    let loginActionPointStyle: LoginAction = LoginTopic.screenViewed.action
+    let loginActionPointStyle: LoginAction = LoginTopic.screenViewed.action2()
 
     // aspect -> aspect transfer of a topic case:
     // method one: calling .topic() helper
