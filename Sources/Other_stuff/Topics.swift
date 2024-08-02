@@ -50,6 +50,18 @@ extension TopicRepresentable {
         self.init(topic: aspect.topic)
     }
 
+    // try this
+//    public init<T: Topic>(topeek: T) where T == Self {
+//        self.init(topic: topeek)
+//    }
+
+
+    // init that takes direct topic
+//    public init<T: Topic>(topic: T) {
+    public init(topic: Topic) {
+        self.init(topic: topic)
+    }
+
     // non-init style
     func topic<OtherType: TopicRepresentable>() -> OtherType where OtherType.Topic == Self.Topic {
         OtherType.init(topic: topic)
@@ -78,10 +90,16 @@ extension TopicRepresentable {
         topic == other.topic
     }
 
+    // differing topics means cit an never be the same case
+    func hasSameTopicCase<OtherType: TopicRepresentable>(as other: OtherType) -> Bool {
+        false
+    }
+
     func hasSameTopic<OtherType: TopicRepresentable>(as other: OtherType) -> Bool where OtherType.Topic == Self.Topic {
         true
     }
 
+    // this works, but should it be provided? Would dev really not know they were different topics?
     func hasSameTopic<OtherType: TopicRepresentable>(as other: OtherType) -> Bool {
         false
     }
@@ -104,7 +122,12 @@ extension TopicRepresentable {
 
 //enum LoginTopic: Equatable, AsAction {
 //enum LoginTopic: Equatable, Glovable {
-enum LoginTopic: Equatable {
+
+protocol Topic { }
+//protocol LoginTopic: Topic { }
+
+//extension LoginTopic: Equatable {
+enum LoginTopic: Topic, Equatable {
     case screenViewed
     case screenDismissed
     case userLoggedIn
@@ -122,6 +145,10 @@ enum LoginTopic: Equatable {
 
 // EXAMPLE of two aspects (or "subjects"): action and event.
 //
+
+//struct LoginHolder: TopicRepresentable {
+//    let topic: LoginTopic
+//}
 
 // no way to make this an enum too?
 // struct is still a value type tho, so not so bad.
@@ -142,19 +169,38 @@ struct LoginEvent: TopicRepresentable {
 // can't do this, good
 //let x: LoginTopic2<Event> = t
 
-//protocol Actionable { }
-//extension Actionable {
-//    var action: any TopicRepresentable {
-//        Self(topic: )
+protocol LoginActionable { }
+
+// computed property version
+//extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
+extension LoginActionable where Self: Topic { //}, Self.Topic == LoginTopic {
+    //    typealias Topic = LoginTopic
+
+    // computed property form.
+    //
+    var action: LoginAction {
+        LoginAction(topic: self)
+//        LoginAction(aspect: topicRepr)
+    }
+}
+
+// function form. computed property is nicer!
+// (called action2 just so no clash and can demo both compiling)
+//extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
+//    func action2() -> LoginAction where Topic == LoginTopic {
+//        LoginAction(topic: self.topic)
 //    }
 //}
 
+// and now can just declare stuff as LoginActionable and get rid of the helper method!
+
 // EXAMPLE of point style helpers
 // (so microlib user can write e.g. `LoginTopic.screenViewed.action`)
-extension LoginTopic {
-    var action: LoginAction {
-        LoginAction(topic: self)
-    }
+//extension LoginTopic: LoginActionable {
+extension LoginTopic: LoginActionable {
+//    var action: LoginAction {
+//        LoginAction(topic: self)
+//    }
 
     var event: LoginEvent {
         LoginEvent(topic: self)
@@ -167,6 +213,7 @@ extension LoginTopic {
 //        LoginEvent(topic: self)
 //    }
 }
+
 
 enum GameTopic {
     case screenViewed
@@ -219,6 +266,9 @@ public func do_it() {
     // this is actually checking for same topic CASE.
     // we also want sameTopic?
     if loginEvent.hasSameTopicCase(as: loginAction) {
+        print("login and login: They are the same topic case, check 1")
+    }
+    if loginEvent.hasSameTopicCase(as: gameAction) {
         print("login and login: They are the same topic case, check 2")
     }
     if loginEvent.hasSameTopic(as: gameAction) {
