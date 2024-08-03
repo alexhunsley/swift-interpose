@@ -123,7 +123,7 @@ extension TopicRepresentable {
 //enum LoginTopic: Equatable, AsAction {
 //enum LoginTopic: Equatable, Glovable {
 
-protocol Topic { }
+protocol Topic: Goom { }
 //protocol LoginTopic: Topic { }
 
 //extension LoginTopic: Equatable {
@@ -133,6 +133,20 @@ enum LoginTopic: Topic, Equatable {
     case userLoggedIn
     case userLoggedOut
 }
+
+protocol Goom {}
+
+// not sure if this includes topic itself! lols.
+extension Topic {
+    func build<T: TopicRepresentable>() -> T where T.Topic == Self {
+        T(topic: self)
+    }
+}
+//extension Goom where Self: Topic {
+//    func build<T: TopicRepresentable>() -> T {
+//        T(topic: self)
+//    }
+//}
 
 enum SettingsTopic: Topic, Equatable {
     case screenViewed
@@ -210,6 +224,8 @@ extension LoginActionable where Self: Topic { //}: Topic { //LoginTopicwhere Sel
 //        ThingAction(aspect: self)
     }
 
+    // this works -- adds this method to anything adopting LoginActionable.
+    // but the general case?
     func buildAction() -> LoginAction where Self == LoginAction.Topic { // where Topic == LoginTopic {
 //        ThingAction(topic: self.topic)
         LoginAction(topic: self)
@@ -287,6 +303,19 @@ public func do_it() {
     // or: append helper like .action or .event on to the topic.
     // If I didn't have the clash, wouldn't even need the LoginAction/LoginTopic bit, I think!
     let _: LoginAction = LoginTopic.screenViewed.buildAction()
+
+    // we also want to build anything (action, event) for a given topic without
+    // having to add stuff to it either manually or with POP mixin conformance?
+    // try:
+
+    // so this works:
+    let _: LoginAction = LoginTopic.screenViewed.event.mirror()
+    // but we want to not use the event!
+    // so like this: (but we have no build() method yet)
+    let loginActionFromBuild: LoginAction = LoginTopic.screenViewed.build()
+    print("loginActionFromBuild: \(loginActionFromBuild)")
+    let loginEventFromBuild: LoginAction = LoginTopic.screenViewed.build()
+    print("loginEventFromBuild: \(loginEventFromBuild)")
 
     // this also works and will build any thing given the right type context for the generic
 //    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAspect()
