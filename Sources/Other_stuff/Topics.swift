@@ -134,6 +134,12 @@ enum LoginTopic: Topic, Equatable {
     case userLoggedOut
 }
 
+enum SettingsTopic: Topic, Equatable {
+    case screenViewed
+    case screenDismissed
+    case settingChanged(String, Int)
+}
+
 //protocol Glovable { }
 //
 //extension Glovable where Self: TopicRepresentable {
@@ -161,6 +167,10 @@ struct LoginEvent: TopicRepresentable {
     let topic: LoginTopic
 }
 
+struct SettingsEvent: TopicRepresentable {
+    let topic: LoginTopic
+}
+
 struct GooberAction: TopicRepresentable {
     let topic: LoginTopic
 }
@@ -177,7 +187,7 @@ protocol LoginActionable { }
 // computed property version
 //extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
 
-//extension LoginActionable { // where Self.Topic == LoginTopic { //} where Self: Topic { //},
+//extension LoginActionable where Self: Topic  { // where Self.Topic == LoginTopic { //} where Self: Topic { //},
 //    //    typealias Topic = LoginTopic
 //
 //    // computed property form.
@@ -185,7 +195,6 @@ protocol LoginActionable { }
 //    var action: LoginAction {
 //        // so self is a topic, but below line requires LoginTopic.
 //        // Can't do `Self: LoginTopic` on extension def!
-//        let tr = TopicRepresentable(
 //        LoginAction(topic: self)
 ////        LoginAction(aspect: topicRepr)
 //    }
@@ -195,12 +204,41 @@ protocol LoginActionable { }
 // (called action2 just so no clash and can demo both compiling)
 extension LoginActionable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
 //    func action2<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
-    func action2<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
+    func buildAspect<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
 //        ThingAction(topic: self.topic)
         ThingAction(topic: self)
 //        ThingAction(aspect: self)
     }
+
+    func buildAction() -> LoginAction where Self == LoginAction.Topic { // where Topic == LoginTopic {
+//        ThingAction(topic: self.topic)
+        LoginAction(topic: self)
+//        ThingAction(aspect: self)
+    }
 }
+
+protocol LoginEventable {}
+
+extension LoginEventable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
+    func buildEvent() -> LoginEvent where Self == LoginEvent.Topic { // where Topic == LoginTopic {
+//        ThingAction(topic: self.topic)
+        LoginEvent(topic: self)
+//        ThingAction(aspect: self)
+    }
+}
+
+//protocol GenericActionable {}
+//
+//extension GenericActionable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
+//    // get a clash with this idea!
+//    // e.g. "Instance method 'buildAspect()' requires the types 'SettingsTopic' and 'LoginTopic' be equivalent"
+//    func buildAspect<ThingAction>() -> ThingAction where ThingAction: TopicRepresentable, Self == ThingAction.Topic { // where Topic == LoginTopic {
+//        //        ThingAction(topic: self.topic)
+//        ThingAction(topic: self)
+//        //        ThingAction(aspect: self)
+//    }
+//}
+
 //extension LoginActionable where Self: TopicRepresentable, Self.Topic == LoginTopic {
 //    func action2() -> LoginAction where Topic == LoginTopic {
 //        LoginAction(topic: self.topic)
@@ -213,6 +251,7 @@ extension LoginActionable where Self: Topic { //}: Topic { //LoginTopicwhere Sel
 // (so microlib user can write e.g. `LoginTopic.screenViewed.action`)
 //extension LoginTopic: LoginActionable {
 extension LoginTopic: LoginActionable {
+//extension LoginTopic: GenericActionable {
 //    var action: LoginAction {
 //        LoginAction(topic: self)
 //    }
@@ -229,6 +268,7 @@ extension LoginTopic: LoginActionable {
 //    }
 }
 
+extension SettingsTopic: LoginActionable {}
 
 enum GameTopic {
     case screenViewed
@@ -245,7 +285,20 @@ public func do_it() {
 
     // or: append helper like .action or .event on to the topic.
     // If I didn't have the clash, wouldn't even need the LoginAction/LoginTopic bit, I think!
-    let loginActionPointStyle: LoginAction = LoginTopic.screenViewed.action2()
+    let loginActionPointStyle: LoginAction = LoginTopic.screenViewed.buildAction()
+
+    // this also works and will build any thing given the right type context for the generic
+//    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAspect()
+    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAction()
+//    let loginEventPointStyle2: LoginEvent = LoginTopic.screenViewed.buildAspect()
+//    let loginEventPointStyle2: LoginEvent = LoginTopic.screenViewed.buildAction()
+
+    // this one:
+//    let settingsEventPointStyle2: SettingsEvent = SettingsTopic.screenViewed.buildEvent()
+
+
+//    let settingsEventPointStyle2: SettingsEvent = SettingsTopic.screenViewed.buildAspect()
+
 
     // aspect -> aspect transfer of a topic case:
     // method one: calling .topic() helper
