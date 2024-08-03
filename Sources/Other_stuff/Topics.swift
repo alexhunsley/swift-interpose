@@ -46,7 +46,7 @@ public protocol TopicRepresentable {
 extension TopicRepresentable {
     // init style
     // could rename topicHolder to aspect/subject here -- for that's what this is
-    public init<T: TopicRepresentable>(aspect: T) where T.Topic == Self.Topic {
+    public init<T: TopicRepresentable>(mirroring aspect: T) where T.Topic == Self.Topic {
         self.init(topic: aspect.topic)
     }
 
@@ -217,15 +217,16 @@ extension LoginActionable where Self: Topic { //}: Topic { //LoginTopicwhere Sel
     }
 }
 
-protocol LoginEventable {}
-
-extension LoginEventable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
-    func buildEvent() -> LoginEvent where Self == LoginEvent.Topic { // where Topic == LoginTopic {
-//        ThingAction(topic: self.topic)
-        LoginEvent(topic: self)
-//        ThingAction(aspect: self)
-    }
-}
+//08-03 cjkj ommented out:
+//protocol LoginEventable {}
+//
+//extension LoginEventable where Self: Topic { //}: Topic { //LoginTopicwhere Self: Topic, Topic == LoginTopic {
+//    func buildEvent() -> LoginEvent where Self == LoginEvent.Topic { // where Topic == LoginTopic {
+////        ThingAction(topic: self.topic)
+//        LoginEvent(topic: self)
+////        ThingAction(aspect: self)
+//    }
+//}
 
 //protocol GenericActionable {}
 //
@@ -307,9 +308,9 @@ public func do_it() {
     let loginEvent: LoginEvent = loginAction.topic()
 
     // method two: init
-    let loginEvent2 = LoginEvent(aspect: loginAction)
+    let loginEvent2 = LoginEvent(mirroring: loginAction)
 
-    let loginAction2 = LoginAction(aspect: loginEvent2)
+    let loginAction2 = LoginAction(mirroring: loginEvent2)
 
     print(loginEvent)
     print(loginEvent2)
