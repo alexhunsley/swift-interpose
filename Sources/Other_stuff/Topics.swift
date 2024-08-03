@@ -63,7 +63,7 @@ extension TopicRepresentable {
     }
 
     // non-init style
-    func topic<OtherType: TopicRepresentable>() -> OtherType where OtherType.Topic == Self.Topic {
+    func mirror<OtherType: TopicRepresentable>() -> OtherType where OtherType.Topic == Self.Topic {
         OtherType.init(topic: topic)
     }
     // tried calc props, no worky. Could genericise the extension though!
@@ -85,13 +85,13 @@ extension TopicRepresentable {
         topic == other.topic
     }
 
-    // call it topic value instead of case?
-    func hasSameTopicCase<OtherType: TopicRepresentable>(as other: OtherType) -> Bool where OtherType.Topic == Self.Topic  {
+    // how about rename to `isMirror(of:`?
+    func hasSameTopicValue<OtherType: TopicRepresentable>(as other: OtherType) -> Bool where OtherType.Topic == Self.Topic  {
         topic == other.topic
     }
 
     // differing topics means cit an never be the same case
-    func hasSameTopicCase<OtherType: TopicRepresentable>(as other: OtherType) -> Bool {
+    func hasSameTopicValue<OtherType: TopicRepresentable>(as other: OtherType) -> Bool {
         false
     }
 
@@ -286,11 +286,11 @@ public func do_it() {
 
     // or: append helper like .action or .event on to the topic.
     // If I didn't have the clash, wouldn't even need the LoginAction/LoginTopic bit, I think!
-    let loginActionPointStyle: LoginAction = LoginTopic.screenViewed.buildAction()
+    let _: LoginAction = LoginTopic.screenViewed.buildAction()
 
     // this also works and will build any thing given the right type context for the generic
 //    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAspect()
-    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAction()
+//    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAction()
 //    let loginEventPointStyle2: LoginEvent = LoginTopic.screenViewed.buildAspect()
 //    let loginEventPointStyle2: LoginEvent = LoginTopic.screenViewed.buildAction()
 
@@ -305,7 +305,7 @@ public func do_it() {
     // method one: calling .topic() helper
     // The generic magic lets us call .topic on a topic holder and create any other
     // holder with same topic, implicitly.
-    let loginEvent: LoginEvent = loginAction.topic()
+    let loginEvent: LoginEvent = loginAction.mirror()
 
     // method two: init
     let loginEvent2 = LoginEvent(mirroring: loginAction)
@@ -334,10 +334,10 @@ public func do_it() {
 
     // this is actually checking for same topic CASE.
     // we also want sameTopic?
-    if loginEvent.hasSameTopicCase(as: loginAction) {
+    if loginEvent.hasSameTopicValue(as: loginAction) {
         print("login and login: They are the same topic case, check 1")
     }
-    if loginEvent.hasSameTopicCase(as: gameAction) {
+    if loginEvent.hasSameTopicValue(as: gameAction) {
         print("login and login: They are the same topic case, check 2")
     }
     if loginEvent.hasSameTopic(as: gameAction) {
