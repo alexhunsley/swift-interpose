@@ -142,6 +142,16 @@ extension Topic {
         T(topic: self)
     }
 }
+
+//extension Topic<TopicRepresentable> {
+//extension TopicRepresentable<Topic> {
+//    var build2: some TopicRepresentable {
+//        Self(topic: topic)
+////        let thang: some TopicRepresentable = topic.build()
+////        return thang
+//    }
+//}
+
 //extension Goom where Self: Topic {
 //    func build<T: TopicRepresentable>() -> T {
 //        T(topic: self)
@@ -316,6 +326,11 @@ public func do_it() {
     print("loginActionFromBuild: \(loginActionFromBuild)")
     let loginEventFromBuild: LoginAction = LoginTopic.screenViewed.build()
     print("loginEventFromBuild: \(loginEventFromBuild)")
+
+    // Not sure we even want this? It's building a thing after all, better
+    // to be explicit with a func `()` I think
+//    let loginEventFromBuildVar: LoginAction = LoginTopic.screenViewed.build
+//    print("loginEventFromBuild: \(loginEventFromBuild)")
 
     // this also works and will build any thing given the right type context for the generic
 //    let loginActionPointStyle2: LoginAction = LoginTopic.screenViewed.buildAspect()
