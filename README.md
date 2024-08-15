@@ -44,7 +44,7 @@ Or perhaps you're just logging what is passed in:
 With Interpose you can just drop in `__iPrint` and a dummy will be created automatically, which will print out the action when sent:
 
 ```
-   doSomething(actionHandler: __iPrint)
+   doSomething(actionHandler: __iPrint())
 ```
 
 ## Spies
@@ -63,7 +63,7 @@ Suppose you have a closure which is doing something meaningful:
 You can use interpose to spy on its invocation:
 
 ```
-   doSomething(actionHander: __iPrint { action in
+   doSomething(actionHander: __iPrint() { action in
        // do useful things
        //   ...
        return 7
@@ -86,7 +86,7 @@ Suppose you have a dangling closure that has a non-void return type:
 If we try and use `__iPrint` here, the compiler will complain:
 
 ```
-   doSomething(actionHandler: __iPrint)
+   doSomething(actionHandler: __iPrint())
 ```
 
 This is because the closure has something to return (a String), but Interpose doesn't know how to make that data.
@@ -97,6 +97,9 @@ There's an easy fix though. If we conform `String` to `DefaultValueProviding`, a
 extension String: DefaultValueProviding {
     public static var defaultValue = ""
 }
+
+// now this works
+doSomething(actionHandler: __iPrint())
 ```
 
 You can conform any types you like to `DefaultValueProviding` and then spy on closures that return them.
