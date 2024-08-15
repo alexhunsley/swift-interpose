@@ -8,6 +8,7 @@
 import Foundation
 import OSLog
 
+// Use OSLog!
 extension Interpose {
     public typealias LoggingProvider = (String) -> Void
 
