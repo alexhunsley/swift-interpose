@@ -28,3 +28,6 @@ public class Interpose {
         records[tag] = rec
     }
 }
+
+// add equatable where possible
+extension Interpose.IRecord: Equatable where P1: Equatable, R1: Equatable { }

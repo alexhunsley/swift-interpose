@@ -57,7 +57,7 @@ extension InterposeTests {
 
     // MARK: - 1 in 1 out, invoke
 
-    func takeIntInStringOutAndInvoke(intValue: Int = 1, handler: IntString, syncTag: Never? = nil) rethrows -> String {
+    func takeIntInStringOutAndInvoke(intValue: Int = 1, handler: IntString, syncTag: Never? = nil, tag: String? = nil) rethrows -> String {
         try handler(intValue)
     }
 }

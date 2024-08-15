@@ -62,6 +62,26 @@ class InterposeTests: XCTestCase {
         })
         XCTAssertEqual(returnedString, "a returned string 7")
     }
+    
+    func test_voidInStringOut_asSpy_recordsData() throws {
+        let returnedString = takeIntInStringOutAndInvoke(intValue: 7, handler: __iPrint(tag: "recordingTest") { integer in // herus. add a tag and check the record!
+            "a returned string \(integer)"
+        })
+        XCTAssertEqual(returnedString, "a returned string 7")
+
+        let returnedString2 = takeIntInStringOutAndInvoke(intValue: 11, handler: __iPrint(tag: "recordingTest-distinct") { integer in // herus. add a tag and check the record!
+            "a returned string \(integer)"
+        })
+        XCTAssertEqual(returnedString2, "a returned string 11")
+
+        XCTAssertEqual(Interpose.default.records.count, 2)
+
+        let record = try XCTUnwrap(Interpose.default.records["recordingTest"] as? Interpose.IRecord<Int, String>)
+        XCTAssertEqual(record, Interpose.IRecord(p1: 7, r1: "a returned string 7"))
+
+        let record2 = try XCTUnwrap(Interpose.default.records["recordingTest-distinct"] as? Interpose.IRecord<Int, String>)
+        XCTAssertEqual(record2, Interpose.IRecord(p1: 11, r1: "a returned string 11"))
+    }
 
     func test_intInVoidOut_asDummy_invokesLoggerTwice() throws {
         takeIntInVoidOutAndInvokeTwice(handler: { i in })
