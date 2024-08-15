@@ -5,12 +5,12 @@ Experimenting with generics and closures.
 Interpose aims to let you simply and quickly:
 
 * create drop-in closure spies and dummies to log activity
-* assert on closures being called (or not)
-* `insert attractive things here` (dedupe/throttle? memoize?)
+* assert on closures being called (or not called)
+* (maybe more in future)
 
 By design, Combine and macros etc are not used here.
 
-Interpose should work fine with async and throwing closures.
+Interpose should work fine with async and throwing (and async throwing) closures.
 
 # Examples
 
@@ -41,10 +41,10 @@ Or perhaps you're just logging what is passed in:
    }
 ```
 
-With Interpose you can just drop in `__interpose` and a dummy will be created automatically, which will print out the action when sent:
+With Interpose you can just drop in `__iPrint` and a dummy will be created automatically, which will print out the action when sent:
 
 ```
-   doSomething(actionHandler: __interpose)
+   doSomething(actionHandler: __iPrint)
 ```
 
 ## Spies
@@ -63,7 +63,7 @@ Suppose you have a closure which is doing something meaningful:
 You can use interpose to spy on its invocation:
 
 ```
-   doSomething(actionHander: __interpose { action in
+   doSomething(actionHander: __iPrint { action in
        // do useful things
        //   ...
        return 7
@@ -71,7 +71,7 @@ You can use interpose to spy on its invocation:
 
 ```
 
-This will log (print out) both incoming parameters and the return value.
+This will print out both incoming parameters and the return value.
 
 ## Dummies that have return values
 
@@ -83,15 +83,15 @@ Suppose you have a dangling closure that has a non-void return type:
    })
 ```
 
-If we try and use `__interpose` here, the compiler will complain:
+If we try and use `__iPrint` here, the compiler will complain:
 
 ```
-   doSomething(actionHandler: __interpose)
+   doSomething(actionHandler: __iPrint)
 ```
 
 This is because the closure has something to return (a String), but Interpose doesn't know how to make that data.
 
-There's an easy fix though. If we conform `String` to `DefaultValueProviding`, and provide a value, `__interpose` will now work:
+There's an easy fix though. If we conform `String` to `DefaultValueProviding`, and provide a value, `__iPrint` will now work:
 
 ```
 extension String: DefaultValueProviding {
@@ -99,4 +99,4 @@ extension String: DefaultValueProviding {
 }
 ```
 
-
+You can conform any types you like to `DefaultValueProviding` and then spy on closures that return them.
