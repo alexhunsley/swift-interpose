@@ -3,8 +3,6 @@
 import XCTest
 @testable import SwiftInterpose
 
-// rename logger to something more general?
-// secretAgent? :)
 class InterposeTests: XCTestCase {
 
     var logSpy: LogSpy!
@@ -12,8 +10,6 @@ class InterposeTests: XCTestCase {
 
     override func setUp() {
         logSpy = LogSpy()
-        // logStub.log doens't contain the prefix bit, etc!
-        // could have attachLogger? For multiples. Getting a bit complicated there...!
         Interpose.logger = logSpy.log
         Interpose.dateProvider = Interpose.mockDateProvider
     }
@@ -22,11 +18,6 @@ class InterposeTests: XCTestCase {
         logSpy = nil
         Interpose.logger = Interpose.defaultLogger
         Interpose.dateProvider = Interpose.defaultDateProvider
-    }
-
-    // put this back later to do the side stuff!
-    func test_runThePWPipeThing() {
-        do_it()
     }
 
     /// -----------------------------------------------------------------------------------------------------------------
