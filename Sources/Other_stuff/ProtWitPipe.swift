@@ -169,7 +169,8 @@ struct AnyKeyPathWrapper<T> {
     // Initializes the wrapper with a specific WritableKeyPath
     init<U>(_ keyPath: WritableKeyPath<T, U>) {
         self.keyPath = keyPath
-        self.propertyName = Self.getPropertyName(for: keyPath)
+        self.propertyName = Self.getPropertyName(from: keyPath)
+        print("For keyPath \(keyPath) I found prop name: \(self.propertyName)")
         self.setValue = { object, value in
             // Attempt to cast the value to the expected type (U) and assign it
             if let castValue = value as? U {
@@ -181,15 +182,27 @@ struct AnyKeyPathWrapper<T> {
     }
 
     // Uses reflection to dynamically get the property name for the given key path
-    private static func getPropertyName<U>(for keyPath: KeyPath<T, U>) -> String {
-        let mirror = Mirror(reflecting: T.self)
-        for case (let label?, _) in mirror.children {
-            if label == String(describing: keyPath) {
-                return label
-            }
+//    private static func getPropertyName<U>(for keyPath: KeyPath<T, U>) -> String {
+//        let mirror = Mirror(reflecting: T.self)
+//        for case (let label?, _) in mirror.children {
+//            if label == String(describing: keyPath) {
+//                return label
+//            }
+//        }
+//        return "Unknown"
+//    }
+
+    // Extracts the property name by stripping the leading struct name from the key path
+    private static func getPropertyName<U>(from keyPath: KeyPath<T, U>) -> String {
+        let keyPathString = String(describing: keyPath)
+        if let dotRange = keyPathString.firstIndex(of: ".") {
+            // Extract everything after the first dot (removing the struct name)
+            let propertyName = keyPathString[keyPathString.index(after: dotRange)...]
+            return String(propertyName)
         }
-        return "Unknown"
+        return keyPathString  // Fallback in case the format is unexpected
     }
+
 }
 
 
@@ -227,7 +240,7 @@ public func do_it3() {
     // just a helper for new values, this can go later
     //    let newValues: [Any] = ["name", "Alexxxx"]
     let newValues: [String: Any] = [
-        "title": "Advanced Swift"
+        "name": "AAxleeeeee"
     ]
 
     // Loop through the key paths and assign the corresponding new values
@@ -257,6 +270,8 @@ public func do_it3() {
             print("No value provided for property: \(keyPathWrapper.propertyName)")
         }
     }
+
+    print(article)
 
 //        object[keyPath: keyPath]
 
@@ -294,12 +309,14 @@ public func do_it3() {
 
     // works
     //    let ttt = typeForKeyPath(of: \Article.funcA, on: Article.self)
-    let ttt = typeForPartialKeyPath(of: \Article.funcA, on: Article.self)
-    print("CALLO: ", ttt)
-
-    print("Calling A: \n\(article.funcA?(7))")
-    print("Calling B:")
-    article.funcB?()
+//    let ttt = typeForPartialKeyPath(of: \Article.funcA, on: Article.self)
+//    print("CALLO: ", ttt)
+//
+//    print("Calling A: \n\(article.funcA?(7))")
+//    print("Calling B:")
+//    article.funcB?()
+//
+//    print(article)
 
     /// -----------
 
@@ -316,7 +333,6 @@ public func do_it3() {
 
 //    setDynamicValue("Goober not Alex!", for: \Article.name, on: &article)  // Set title
 
-    print(article)
 }
 
 func setDynamicValue<T>(_ value: Any, for keyPathWrapper: AnyKeyPathWrapper<T>, on object: inout T) {
