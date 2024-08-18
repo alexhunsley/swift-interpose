@@ -14,6 +14,11 @@ import OSLog
 //    }
 //}
 
+// So this new approach works.
+// Annoyingly, we don't have compile time safety; we can try to patch in the wrong things
+// and only realise at run-time. This could be improved by being more careful with
+// using types.
+
 public protocol WitnessPiping { }
 
 // piping implementation
@@ -25,12 +30,12 @@ extension WitnessPiping {
 }
 
 // notocol with pipe
-public struct ExampleDemonstrating: WitnessPiping {
-    //var action: ((message: String) -> Void)?
-    public var add: ((a: Int, b: Int)) -> Int
-    // note we can't use labels in below form!
-    public var addB: (Int, Int) -> Int
-}
+//public struct ExampleDemonstrating: WitnessPiping {
+//    //var action: ((message: String) -> Void)?
+//    public var add: ((a: Int, b: Int)) -> Int
+//    // note we can't use labels in below form!
+//    public var addB: (Int, Int) -> Int
+//}
 
 
 // httpxs://steipete.com/posts/interposekit/
@@ -49,7 +54,9 @@ class Spy<A: Hashable, B, C> {
 }
 
 struct Article {
-    var funcA: ((Int) -> String)?
+    typealias FuncA = ((Int) -> String)?
+
+    var funcA: FuncA
     var funcB: (() -> Void)?
     var name: String
 
@@ -97,7 +104,6 @@ struct AnyKeyPathWrapper<T> {
         }
         return keyPathString  // Fallback in case the format is unexpected
     }
-
 }
 
 public func do_it3() {
@@ -105,9 +111,16 @@ public func do_it3() {
                           funcB: { print("1. Funcs B exec") },
                           name: "AlexH")
 
+    print("BEFORE patch: Calling funcA: ", article.funcA?(5))
+
     // just a helper for new values, this can go later
     let newValues: [String: Any] = [
-        "name": "AAxleeeeee"
+        "name": "AAxleeeeee",
+//        "funcA": { ( Article.FuncA ) in
+        // problem: this is not a place we can use that typealias above (FuncA).
+        "funcA": { (index: Int) -> String in
+            return "Numma: \(index)"
+        }
     ]
 
     // Loop through the key paths and assign the corresponding new values
@@ -120,6 +133,8 @@ public func do_it3() {
         }
     }
     print(article)
+
+    print("AFTER patch: Calling funcA: ", article.funcA?(5))
 }
 
 func setDynamicValue<T>(_ value: Any, for keyPathWrapper: AnyKeyPathWrapper<T>, on object: inout T) {
