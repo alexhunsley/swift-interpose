@@ -18,7 +18,10 @@ import OSLog
 // Annoyingly, we don't have compile time safety; we can try to patch in the wrong things
 // and only realise at run-time. This could be improved by being more careful with
 // using types.
-
+//
+// Also, not sure how interpose is going to get the type information to make a poser,
+// which was the ultimate hope!
+//
 public protocol WitnessPiping { }
 
 // piping implementation
@@ -88,6 +91,13 @@ struct AnyKeyPathWrapper<T> {
             // Attempt to cast the value to the expected type (U) and assign it
             if let castValue = value as? U {
                 object[keyPath: keyPath] = castValue
+
+            //                let poser: U = __iPrint(f: castValue)
+
+                // not enough info for the compiler here... :(
+//                let casto = __iPrint(f: castValue) as! U
+//                object[keyPath: keyPath] = __iPrint(f: castValue)
+//                object[keyPath: keyPath] = poser
             } else {
                 print("Type mismatch for property at key path: \(keyPath)")
             }
