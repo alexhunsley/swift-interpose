@@ -1,10 +1,3 @@
-//
-//  TestHelpers.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 03/07/2024.
-//
-
 import Foundation
 
 typealias VoidVoid = () throws -> Void

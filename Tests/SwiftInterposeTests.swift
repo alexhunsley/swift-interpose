@@ -1,5 +1,3 @@
-// hello
-
 import XCTest
 @testable import SwiftInterpose
 
@@ -25,9 +23,9 @@ class InterposeTests: XCTestCase {
     }
 
     // put this back later to do the side stuff!
-    func test_runThePWPipeThing() {
-        do_it()
-    }
+//    func test_runThePWPipeThing() {
+//        do_it()
+//    }
 
     /// -----------------------------------------------------------------------------------------------------------------
     // MARK: - Dummy tests

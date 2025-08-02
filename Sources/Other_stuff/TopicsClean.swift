@@ -1,10 +1,3 @@
-//
-//  TopicsClean.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 04/08/2024.
-//
-
 import Foundation
 
 // MARK: - TopicRepresentable

@@ -1,10 +1,3 @@
-//
-//  Topics.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 01/08/2024.
-//
-
 import Foundation
 
 /*

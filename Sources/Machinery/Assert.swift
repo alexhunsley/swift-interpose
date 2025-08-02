@@ -1,10 +1,3 @@
-//
-//  Assert.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 03/07/2024.
-//
-
 import Foundation
 
 public func __iAssertNeverCalled(tag: String? = nil, callFunc: String = #function, callFile: String = #file) -> () -> Void {

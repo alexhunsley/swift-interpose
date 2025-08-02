@@ -1,10 +1,3 @@
-//
-//  ProtWitPipe.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 08/07/2024.
-//
-
 import Foundation
 import OSLog
 

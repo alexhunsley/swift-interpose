@@ -1,10 +1,3 @@
-//
-//  Spies.swift
-//  SwiftInterpose
-//
-//  Created by Alex Hunsley on 03/07/2024.
-//
-
 import Foundation
 
 // Should really be using code generation for these repetitive things.

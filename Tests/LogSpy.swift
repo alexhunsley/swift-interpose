@@ -1,10 +1,3 @@
-//
-//  LogSpy.swift
-//  SwiftInterposeTests
-//
-//  Created by Alex Hunsley on 02/07/2024.
-//
-
 import Foundation
 
 // mutating stuff when using struct... use class for now,
